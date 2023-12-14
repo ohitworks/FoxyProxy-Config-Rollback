@@ -16,6 +16,23 @@ def generate_id() -> str:
     timestamp = int(time.time() * 1000)
     return f"{random_string}{timestamp}"
 
+
+def pattern_modify(patterns: list[dict]) -> list[dict]:
+    """
+    New version also add "*://" in the pattern. The function can remove it.
+    """
+    ret = []
+    for val in patterns:
+        ret.append(this := {})
+        this.update(val)
+        if this["type"] == "wildcard" and this["pattern"].startswith("*://") and this["pattern"].endswith("/"):
+            this["pattern"] = this["pattern"][4:-1]
+        this["protocols"] = 1  # 1 means http and https
+        this["type"] = 1 if val["type"] == "wildcard" else 2
+
+    return ret
+
+
 def data_modify(data: dict) -> dict:
     """
     Input the new type config, return the old type.
@@ -40,11 +57,11 @@ def data_modify(data: dict) -> dict:
         proxy_setting["password"] = val["password"]
         proxy_setting["cc"] = val["cc"]
         proxy_setting["index"] = index
-        proxy_setting["type"] = type_map[val["type"]]
         proxy_setting["address"] = val["hostname"]
         proxy_setting["country"] = ""
-        proxy_setting["whitePatterns"] = val["include"]
-        proxy_setting["blackPatterns"] = val["exclude"]
+        proxy_setting["whitePatterns"] = pattern_modify(val["include"])
+        proxy_setting["blackPatterns"] = pattern_modify(val["exclude"])
+        proxy_setting["type"] = type_map[val["type"]]
         proxy_setting["proxyDNS"] = False
         proxy_setting["pacURL"] = val["pac"]
         proxy_setting["id"] = item_id
@@ -60,7 +77,7 @@ def main(file_path, save_path):
         data = json.load(f)
     data = data_modify(data)
     with open(save_path, "w") as f:
-        json.dump(data, f, indent=4, ensure_ascii=False)
+        json.dump(data, f, indent=2, ensure_ascii=False)
 
 
 if __name__ == "__main__":
