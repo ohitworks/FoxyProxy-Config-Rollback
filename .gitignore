@@ -1,0 +1,12 @@
+# Python
+*.pyc
+__pycache__/
+venv/
+env/
+*.env
+
+# VS Code
+.vscode/
+
+# My Data
+*.json
